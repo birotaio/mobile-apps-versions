@@ -130,3 +130,4 @@ dmypy.json
 
 *.p8
 *.json
+.DS_STORE
