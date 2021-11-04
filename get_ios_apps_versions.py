@@ -16,6 +16,8 @@ header = {
     "typ": "JWT"
 }
 
+staged_releases_mappings = ["1%", "2%", "5%",  "10%", "20%", "50%", "100%"]
+
 payload = {
     "iss": ISSUER_ID,
     "exp": EXPIRATION_TIME,
@@ -34,9 +36,15 @@ with open('output.json', 'w') as out:
     out.write(json.dumps(r.json(), indent=4))
 
 for app in r.json()["data"]:
-    versions = requests.get(app["relationships"]["appStoreVersions"]["links"]["related"], headers=HEAD)
+    versions_request = requests.get(app["relationships"]["appStoreVersions"]["links"]["related"], headers=HEAD)
+    versions = versions_request.json()
     print("******{}******".format(app["attributes"]["name"]))
-    for version in versions.json()["data"]:
+    for version in versions["data"]:
         print("Version", version["attributes"]["versionString"])
+        phased_release_request = requests.get(version["relationships"]["appStoreVersionPhasedRelease"]["links"]["related"], headers=HEAD)
+        phased_release = phased_release_request.json()
+        if phased_release["data"] != None:
+            if phased_release["data"]["attributes"]["phasedReleaseState"] == 'ACTIVE':
+                print("active phased release", staged_releases_mappings[phased_release["data"]["attributes"]["currentDayNumber"] - 1])
     print("")
     
